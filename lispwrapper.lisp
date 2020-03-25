@@ -155,13 +155,95 @@
                                         ;transaction functions
 
 
-(defun get-transactions (endpoint api-key) (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions") api-key nil)))
+(defun get-transactions (endpoint api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions") api-key nil)))
 
 
-(defun get-transaction-details (endpoint hash api-key) (map 'string #'code-char (get-request (concatenate 'string endpoint "hash/" hash) api-key nil)))
+(defun get-transaction-details (endpoint hash api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "hash/" hash) api-key nil)))
 
 
-(defun get-unconfirmed-transactions (endpoint api-key) (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/unconfirmed") api-key nil)))
+(defun get-unconfirmed-transactions (endpoint api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/unconfirmed") api-key nil)))
 
 
+(defun get-unconfirmed-transactions-address (endpoint address api-key)
 
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/unconfirmed/" address) api-key nil)))
+
+
+(defun get-transactions-from-height (endpoint height api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/" height) api-key nil)))
+
+
+(defun get-transactions-startheight-endheight (endpoint startheight endheight api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/" startheight "/" endheight) api-key nil)))
+
+
+(defun get-transactions-address-startheight (endpoint address startheight api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/address/" address "/" startheight) api-key nil)))
+
+
+(defun get-transactions-address-startheight-endheight (endpoint address startheight endheight api-key)
+  
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "transactions/address/" address "/" startheight "/" endheight) api-key nil)))
+
+
+(defun basic-send (endpoint address amount paymentid api-key)
+
+  (map 'string #'code-char (post-request (concatenate 'string endpoint "transactions/send/basic") api-key (format nil "{
+                                                                                                                        \"destination\": \"~A\",
+                                                                                                                        \"amount\": ~A,
+                                                                                                                        \"paymentID\": \"~A\" }" address amount paymentid))))
+
+
+(defun prepare-basic-send (endpoint address amount paymentid api-key) 
+  
+  (post-request (concatenate 'string endpoint "transactions/prepare/basic") api-key (format nil "{
+                                                                                               \"destination\": \"~A\",
+                                                                                               \"amount\": ~A,
+                                                                                               \"paymentID\": \"~A\" }" address amount paymentid)))
+
+
+                                        ;balance functions
+
+
+(defun balance (endpoint api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "balance") api-key nil)))
+
+
+(defun balance-address (endpoint address api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "balance/" address) api-key nil)))
+
+
+(defun get-balances (endpoint api-key)
+
+  (map 'string #'code-char (get-request (concatenate 'string endpoint "balances") api-key nil)))
+
+
+                                        ;misc functions
+
+
+(defun save (endpoint api-key) (put-request (concatenate 'string endpoint "save") api-key nil))
+
+
+(defun export-wallet-data (endpoint filename api-key)
+
+  (post-request (concatenate 'string endpoint "export/json") api-key (format nil "{ \"filename\": \"~A\" }" filename)))
+
+
+(defun reset-wallet (endpoint scanheight api-key) (put-request (concatenate 'string endpoint "reset") api-key (format nil "{ \"scanHeight\": ~A }" scanheight)))
+
+
+(defun validate-address (endpoint address api-key) (post-request (concatenate 'string endpoint "addresses/validate") api-key (format nil "{ \"address\": \"~A\" }" address)))
+
+
+(defun get-status (endpoint api-key) (map 'string #'code-char (get-request (concatenate 'string endpoint "status") api-key nil)))
