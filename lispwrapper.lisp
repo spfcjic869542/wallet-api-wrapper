@@ -203,12 +203,50 @@
                                                                                                                         \"paymentID\": \"~A\" }" address amount paymentid))))
 
 
+
 (defun prepare-basic-send (endpoint address amount paymentid api-key) 
   
   (post-request (concatenate 'string endpoint "transactions/prepare/basic") api-key (format nil "{
                                                                                                \"destination\": \"~A\",
                                                                                                \"amount\": ~A,
                                                                                                \"paymentID\": \"~A\" }" address amount paymentid)))
+
+
+(defun advanced-send (endpoint addresses amounts paymentid unlocktime api-key)
+
+  (setq input (princ-to-string (collect-list addresses amounts)))
+
+  (setq input (string-left-trim "(" input))
+
+  (setq input (string-right-trim ")" input))
+  
+  (setq input (string-right-trim "," input))
+
+  (concatenate 'string "{ \"destinations\": [ " input " ], \"paymentID\": " "\"" paymentid "\": " "\"unlockTime\": " (write-to-string unlocktime) "}")
+
+  (post-request endpoint api-key (concatenate 'string "{ \"destinations\": [ " input " ], \"paymentID\": " "\"" paymentid "\": " "\"unlockTime\": " (write-to-string unlocktime) "}")))
+
+
+(defun prepare-advanced-send (endpoint addresses amounts paymentid unlocktime api-key) (advanced-send (concatenate 'string endpoint "/transactions/prepare/advanced") addresses amounts paymentid unlocktime api-key))
+
+
+(defun send-prepared-transactions (endpoint hash api-key) (post-request endpoint api-key (format nil "{ \"transactionHash\": \"~A\" }" hash)))
+
+
+(defun cancel-prepared-transaction (endpoint hash api-key) (delete-request (concatenate 'string endpoint "/transactions/prepared" hash) api-key nil))
+
+
+(defun send-fusion-transaction (endpoint api-key) (post-request (concatenate 'string endpoint "/transactions/send/fusion/basic") api-key nil))
+
+
+(defun send-advanced-fusion-transaction (endpoint mixin addresses destination optimizetarget api-key)
+
+  (post-request (concatenate 'string endpoint "/transactions/send/fusion/advanced") api-key (format nil "{ \"mixin\": ~A, \"sourceAddresses\": [ \"~A\" ], \"destination\": \"~A\", \"optimizeTarget\": ~A }" mixin addresses destination optimizetarget)))
+
+
+(defun get-transaction-private-key (endpoint hash api-key) (get-request (concatenate 'string endpoint "/transactions/privatekey/" hash) api-key nil))
+
+
 
 
                                         ;balance functions
@@ -247,3 +285,21 @@
 
 
 (defun get-status (endpoint api-key) (map 'string #'code-char (get-request (concatenate 'string endpoint "status") api-key nil)))
+
+
+                                        ;supporting functions
+
+
+(defun collect-list (addresses amounts)
+  
+  (loop for address in addresses
+        for amount in amounts
+        
+        do
+        
+        (setq address-string (princ-to-string address))
+        (setq amount-string (princ-to-string amount))
+        
+        (setq json (format nil "{ \"address\": \"~A\", \"amount\": ~A }" address-string amount-string))
+        
+        collect json))
